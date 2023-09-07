@@ -10,7 +10,9 @@ import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firesto
 import { signIn, useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import Moment from 'react-moment'
-import { deleteObject } from 'firebase/storage'
+import { deleteObject, ref } from 'firebase/storage'
+import { useRecoilState,  } from 'recoil'
+import { modalState } from '@/atom/modalAtom'
 
 
 
@@ -19,6 +21,7 @@ function Posts({ post }) {
   const { data: session } = useSession();
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
+  const [open, setOpen] = useRecoilState(modalState);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "posts", post.id, "likes"),
@@ -71,7 +74,7 @@ function Posts({ post }) {
         <img className='mr-2 rounded-2xl' src={post.data().image}/>
 
         <div className='flex justify-between p-2 text-gray-500'>
-          <ChatIcon className='p-2 h-9 w-9 hoverEffect hover:text-sky-500 hover:bg-sky-100' />
+          <ChatIcon onClick={()=> setOpen(!open)} className='p-2 h-9 w-9 hoverEffect hover:text-sky-500 hover:bg-sky-100' />
           {session?.user.uid === post?.data().id && (
             <TrashIcon onClick={deletePost} className='p-2 h-9 w-9 hoverEffect hover:text-red-600 hover:bg-red-100' />
           )}

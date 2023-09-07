@@ -26,20 +26,21 @@ function Input() {
             username: session.user.username,
         });
 
-        const imageRef = ref(storage, `posts/${docRef.id}/image`)
+        const imageRef = ref(storage, `posts/${docRef.id}/image`);
 
         if (selectedFile) {
             await uploadString(imageRef, selectedFile, "data_url").then(async () => {
-                const downloadURL = await getDownloadURL(imageRef)
+                const downloadURL = await getDownloadURL(imageRef);
                 await updateDoc(doc(db, "posts", docRef.id), {
                     image: downloadURL,
-                })
-            })
-            setInput("");
-            setSelectedFile(null);
-            setLoading(false);
+                });
+            });
         }
-    }
+
+        setInput("");
+        setSelectedFile(null);
+        setLoading(false);
+    };
 
     const addImageToPost = (e) => {
         const reader = new FileReader();
