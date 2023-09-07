@@ -71,7 +71,7 @@ function Input() {
                         </div>
                         {selectedFile && (
                             <div className='relative'>
-                                <XIcon className='absolute rounded-full shadow-md cursor-pointer h-7 shadow-white' onClick={() => setSelectedFile(null)} />
+                                <XIcon className='absolute m-1 border border-white rounded-full shadow-md cursor-pointer h-7' onClick={() => setSelectedFile(null)} />
                                 <img src={selectedFile} className={`${loading && "animate-pulse"}`} />
                             </div>
                         )}
