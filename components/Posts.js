@@ -46,7 +46,9 @@ function Posts({ post }) {
   async function deletePost() {
     if(window.confirm('Are you sure you want to delete this post?')){
       deleteDoc(doc(db, "posts", post.id))
-      deleteObject(ref(storage, `posts/${post.id}/image`))
+      if(post.data().image){
+        deleteObject(ref(storage, `posts/${post.id}/image`))
+      }
     }
   }
 
@@ -66,7 +68,7 @@ function Posts({ post }) {
 
         </div>
         <p className='text-gray-800 text-[15px] sm:text-[16px] mb-2'>{post.data().text}</p>
-        <img className='mr-2 rounded-2xl' src={post.data().image} alt='post-img' />
+        <img className='mr-2 rounded-2xl' src={post.data().image}/>
 
         <div className='flex justify-between p-2 text-gray-500'>
           <ChatIcon className='p-2 h-9 w-9 hoverEffect hover:text-sky-500 hover:bg-sky-100' />
