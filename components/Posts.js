@@ -81,8 +81,8 @@ function Posts({ post, id }) {
           <DotsHorizontalIcon className='w-10 h-10 p-2 hoverEffect hover:bg-sky-100 hover:text-sky-500' />
 
         </div>
-        <p className='text-gray-800 text-[15px] sm:text-[16px] mb-2'>{post?.data()?.text}</p>
-        <img className='mr-2 rounded-2xl' src={post?.data()?.image} />
+        <p onClick={()=> router.push(`/posts/${id}`)} className='text-gray-800 text-[15px] sm:text-[16px] mb-2'>{post?.data()?.text}</p>
+        <img onClick={()=> router.push(`/posts/${id}`)} className='mr-2 rounded-2xl' src={post?.data()?.image} />
 
         <div className='flex justify-between p-2 text-gray-500'>
           <div className='flex items-center select-none'>

@@ -51,7 +51,7 @@ function PostPage({ newsResults, randomUsersResults }) {
           {comments.length > 0 && (
             <div>
               {comments.map((comment) => (
-                <Comment key={comment.id} id={comment.id} comment={comment.data()}/>
+                <Comment key={comment.id} commentId={comment.id} comment={comment.data()} originalPostId={id}/>
               ))}
             </div> 
           )}
