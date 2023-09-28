@@ -1,29 +1,34 @@
+import { userState } from '@/atom/userAtom'
 import { db, storage } from '@/firebase'
 import { PhotographIcon, XIcon } from '@heroicons/react/outline'
 import { EmojiHappyIcon } from '@heroicons/react/outline'
+import { getAuth } from 'firebase/auth'
 import { addDoc, collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadString } from 'firebase/storage'
-import { useSession, signOut } from 'next-auth/react'
+import { signOut } from 'next-auth/react'
 import { useRef, useState } from 'react'
+import { useRecoilState } from 'recoil'
 
 function Input() {
-    const { data: session } = useSession();
+    
     const [input, setInput] = useState("");
+    const [currentUser, setCurrentUser] = useRecoilState(userState);
     const [selectedFile, setSelectedFile] = useState(null);
     const filePickerRef = useRef(null);
     const [loading, setLoading] = useState(false);
+    const auth = getAuth();
 
     const sendPost = async () => {
         if (loading) return;
         setLoading(true);
 
         const docRef = await addDoc(collection(db, "posts"), {
-            id: session.user.uid,
+            id: currentUser.uid,
             text: input,
-            userImg: session.user.image,
+            userImg: currentUser.userImg,
             timestamp: serverTimestamp(),
-            name: session.user.name,
-            username: session.user.username,
+            name: currentUser.name,
+            username: currentUser.username,
         });
 
         const imageRef = ref(storage, `posts/${docRef.id}/image`);
@@ -50,15 +55,20 @@ function Input() {
         reader.onload = (readerEvent) => {
             setSelectedFile(readerEvent.target.result)
         }
+    };
+
+    function onSignOut(){
+        signOut(auth);
+        setCurrentUser(null);
     }
 
     return (
         <>
-            {session && (
+            {currentUser && (
                 <div className='flex p-3 space-x-3 border-b border-gray-200'>
-                    <img src={session.user.image} alt="user-img"
+                    <img src={currentUser?.userImg} alt="user-img"
                         className='rounded-full cursor-pointer h-11 w-11 hover:brightness-95'
-                        onClick={signOut}
+                        onClick={()=>onSignOut()}
                     />
                     <div className='w-full divide-y divide-gray-200'>
                         <div className=''>

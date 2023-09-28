@@ -7,23 +7,23 @@ import { HeartIcon as HeartIconFilled } from '@heroicons/react/solid'
 import { ShareIcon } from '@heroicons/react/outline'
 import { ChartBarIcon } from '@heroicons/react/outline'
 import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore'
-import { signIn, useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import Moment from 'react-moment'
 import { deleteObject, ref } from 'firebase/storage'
 import { useRecoilState, } from 'recoil'
 import { modalState, postIdState } from '@/atom/modalAtom'
 import { useRouter } from 'next/router'
+import { userState } from '@/atom/userAtom'
 
 
 
 function Comment({ comment, commentId, originalPostId }) {
 
-  const { data: session } = useSession();
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const [open, setOpen] = useRecoilState(modalState);
   const [postId, setPostId] = useRecoilState(postIdState);
+  const [currentUser, setCurrentUser] = useRecoilState(userState);
   const router = useRouter();
 
 
@@ -33,21 +33,22 @@ function Comment({ comment, commentId, originalPostId }) {
   }, [db, originalPostId, commentId]);
 
   useEffect(() => {
-    setHasLiked(likes.findIndex((like) => like.id === session?.user.uid) !== -1)
-  }, [likes]);
+    setHasLiked(likes.findIndex((like) => like.id === currentUser?.uid) !== -1)
+  }, [likes, currentUser]);
 
 
   async function likeComment() {
-    if (session) {
+    if (currentUser) {
       if (hasLiked) {
-        await deleteDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", session?.user.uid))
+        await deleteDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", currentUser?.uid))
       } else {
-        await setDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", session?.user.uid), {
-          username: session.user.username,
+        await setDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", currentUser?.uid), {
+          username: currentUser.username,
         })
       }
     } else {
-      signIn()
+      // signIn()
+      router.push("/auth/signin")
     }
   };
 
@@ -70,25 +71,11 @@ function Comment({ comment, commentId, originalPostId }) {
             <span className='text-sm sm:text-[15px] hover:underline'><Moment fromNow>{comment?.timestamp?.toDate()}</Moment></span>
           </div>
           <DotsHorizontalIcon className='w-10 h-10 p-2 hoverEffect hover:bg-sky-100 hover:text-sky-500' />
-
         </div>
         <p className='text-gray-800 text-[15px] sm:text-[16px] mb-2'>{comment?.comment}</p>
 
         <div className='flex justify-between p-2 text-gray-500'>
-          <div className='flex items-center select-none'>
-            <ChatIcon onClick={() => {
-              if (!session) {
-                signIn();
-              } else {
-                setPostId(originalPostId)
-                setOpen(!open);
-              }
-            }}
-              className='p-2 h-9 w-9 hoverEffect hover:text-sky-500 hover:bg-sky-100'
-            />
-          </div>
-
-          {session?.user.uid === comment?.userId && (
+          {currentUser?.uid === comment?.userId && (
             <TrashIcon onClick={deleteComment} className='p-2 h-9 w-9 hoverEffect hover:text-red-600 hover:bg-red-100' />
           )}
           <div className='flex items-center'>

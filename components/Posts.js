@@ -7,24 +7,24 @@ import { HeartIcon as HeartIconFilled } from '@heroicons/react/solid'
 import { ShareIcon } from '@heroicons/react/outline'
 import { ChartBarIcon } from '@heroicons/react/outline'
 import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore'
-import { signIn, useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import Moment from 'react-moment'
 import { deleteObject, ref } from 'firebase/storage'
-import { useRecoilState, } from 'recoil'
+import { useRecoilState } from 'recoil'
 import { modalState, postIdState } from '@/atom/modalAtom'
 import { useRouter } from 'next/router'
+import { userState } from '@/atom/userAtom'
 
 
 
 function Posts({ post, id }) {
 
-  const { data: session } = useSession();
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const [open, setOpen] = useRecoilState(modalState);
   const [postId, setPostId] = useRecoilState(postIdState);
   const [comments, setComments] = useState([]);
+  const [currentUser, setCurrentUser] = useRecoilState(userState)
   const router = useRouter();
   
 
@@ -34,8 +34,8 @@ function Posts({ post, id }) {
   }, [db]);
 
   useEffect(() => {
-    setHasLiked(likes.findIndex((like) => like.id === session?.user.uid) !== -1)
-  }, [likes]);
+    setHasLiked(likes.findIndex((like) => like.id === currentUser?.uid) !== -1)
+  }, [likes, currentUser]);
 
   useEffect(() => {
     onSnapshot(collection(db, "posts", id, "comments"),
@@ -43,16 +43,17 @@ function Posts({ post, id }) {
   }, [db])
 
   async function likePost() {
-    if (session) {
+    if (currentUser) {
       if (hasLiked) {
-        await deleteDoc(doc(db, "posts", id, "likes", session?.user.uid))
+        await deleteDoc(doc(db, "posts", id, "likes", currentUser?.uid))
       } else {
-        await setDoc(doc(db, "posts", id, "likes", session?.user.uid), {
-          username: session.user.username,
+        await setDoc(doc(db, "posts", id, "likes", currentUser?.uid), {
+          username: currentUser?.username,
         })
       }
     } else {
-      signIn()
+      // signIn()
+      router.push("/auth/signin")
     }
   };
 
@@ -87,8 +88,9 @@ function Posts({ post, id }) {
         <div className='flex justify-between p-2 text-gray-500'>
           <div className='flex items-center select-none'>
             <ChatIcon onClick={() => {
-              if (!session) {
-                signIn();
+              if (!currentUser) {
+                // signIn();
+                router.push("/auth/signin")
               } else {
                 setPostId(id)
                 setOpen(!open);
@@ -101,7 +103,7 @@ function Posts({ post, id }) {
           )}
           </div>
           
-          {session?.user.uid === post?.data().id && (
+          {currentUser?.uid === post?.data().id && (
             <TrashIcon onClick={deletePost} className='p-2 h-9 w-9 hoverEffect hover:text-red-600 hover:bg-red-100' />
           )}
           <div className='flex items-center'>
